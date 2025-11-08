@@ -174,6 +174,12 @@ export default function App() {
     }
   };
 
+  // Handle author selection
+  const handleAuthorSelect = (authorId) => {
+    setViewAuthorId(authorId);
+    setIsSidebarOpen(false); // Close sidebar on mobile
+  };
+
   const booksForAuthor = (id) => books.filter((b) => b.authorId === id);
   const selectedAuthor = authors.find((a) => a.id === viewAuthorId);
   const authorBooks = booksForAuthor(viewAuthorId);
@@ -282,10 +288,7 @@ export default function App() {
                             ? "bg-indigo-50 border border-indigo-200 shadow-sm"
                             : "bg-slate-50 hover:bg-slate-100 border border-transparent"
                         }`}
-                        onClick={() => {
-                          setViewAuthorId(author.id);
-                          setIsSidebarOpen(false);
-                        }}
+                        onClick={() => handleAuthorSelect(author.id)}
                       >
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
@@ -341,7 +344,7 @@ export default function App() {
                     Welcome to BookLibrary
                   </h3>
                   <p className="text-slate-500 max-w-md mx-auto text-sm md:text-base">
-                    Select an author from the sidebar to view their books, or add a new author to get started.
+                    {isSidebarOpen ? "Select an author to view their books" : "Select an author from the sidebar to view their books, or add a new author to get started."}
                   </p>
                   <button
                     onClick={() => setIsSidebarOpen(true)}
