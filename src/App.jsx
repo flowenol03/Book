@@ -18,6 +18,7 @@ const isFourDigitYear = (y) => /^\d{4}$/.test(String(y));
 export default function App() {
   const [authors, setAuthors] = useState([]);
   const [books, setBooks] = useState([]);
+  const [chapters, setChapters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -35,9 +36,19 @@ export default function App() {
   const [bookCategory, setBookCategory] = useState("");
   const [bookErrors, setBookErrors] = useState({});
 
+  // Add Chapter form state
+  const [chapterBookId, setChapterBookId] = useState("");
+  const [chapterTitle, setChapterTitle] = useState("");
+  const [chapterContent, setChapterContent] = useState("");
+  const [chapterNumber, setChapterNumber] = useState("");
+  const [chapterErrors, setChapterErrors] = useState({});
+
   const [viewAuthorId, setViewAuthorId] = useState("");
+  const [viewBookId, setViewBookId] = useState("");
   const [showAddAuthorModal, setShowAddAuthorModal] = useState(false);
   const [showAddBookModal, setShowAddBookModal] = useState(false);
+  const [showAddChapterModal, setShowAddChapterModal] = useState(false);
+  const [activeTab, setActiveTab] = useState("books"); // "books" or "chapters"
 
   // Load data from Firebase
   useEffect(() => {
@@ -61,6 +72,16 @@ export default function App() {
         ...doc.data()
       }));
       setBooks(booksData);
+    });
+
+    // Real-time listener for chapters
+    const chaptersQuery = query(collection(db, 'chapters'), orderBy('chapterNumber', 'asc'));
+    const unsubscribeChapters = onSnapshot(chaptersQuery, (snapshot) => {
+      const chaptersData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setChapters(chaptersData);
       setLoading(false);
     });
 
@@ -68,6 +89,7 @@ export default function App() {
     return () => {
       unsubscribeAuthors();
       unsubscribeBooks();
+      unsubscribeChapters();
     };
   }, []);
 
@@ -126,16 +148,52 @@ export default function App() {
         updatedAt: new Date()
       };
 
-      await addDoc(collection(db, 'books'), newBook);
+      const docRef = await addDoc(collection(db, 'books'), newBook);
       
       setBookTitle("");
       setBookDescription("");
       setBookYear("");
       setBookCategory("");
       setShowAddBookModal(false);
+      
+      // Optionally open add chapter modal after adding book
+      setChapterBookId(docRef.id);
+      setShowAddChapterModal(true);
     } catch (error) {
       console.error("Error adding book: ", error);
       alert("Error adding book. Please try again.");
+    }
+  };
+
+  // Add Chapter to Firebase
+  const handleAddChapter = async (e) => {
+    e.preventDefault();
+    const errors = {};
+    if (!isNonEmpty(chapterBookId)) errors.book = "Select a book.";
+    if (!isNonEmpty(chapterTitle)) errors.title = "Chapter title is required.";
+    if (!chapterNumber || chapterNumber < 1) errors.number = "Chapter number must be at least 1.";
+    setChapterErrors(errors);
+    if (Object.keys(errors).length) return;
+
+    try {
+      const newChapter = {
+        bookId: chapterBookId,
+        title: chapterTitle.trim(),
+        content: chapterContent.trim(),
+        chapterNumber: parseInt(chapterNumber),
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      await addDoc(collection(db, 'chapters'), newChapter);
+      
+      setChapterTitle("");
+      setChapterContent("");
+      setChapterNumber("");
+      setShowAddChapterModal(false);
+    } catch (error) {
+      console.error("Error adding chapter: ", error);
+      alert("Error adding chapter. Please try again.");
     }
   };
 
@@ -164,25 +222,68 @@ export default function App() {
 
   // Remove Book from Firebase
   const removeBook = async (id) => {
-    if (!confirm("Remove this book?")) return;
+    if (!confirm("Remove this book and all its chapters?")) return;
     
     try {
+      // Delete book
       await deleteDoc(doc(db, 'books', id));
+      
+      // Delete all chapters of this book
+      const bookChapters = chapters.filter(chapter => chapter.bookId === id);
+      const deleteChapterPromises = bookChapters.map(chapter => 
+        deleteDoc(doc(db, 'chapters', chapter.id))
+      );
+      
+      await Promise.all(deleteChapterPromises);
+      
+      if (viewBookId === id) {
+        setViewBookId("");
+        setActiveTab("books");
+      }
     } catch (error) {
       console.error("Error removing book: ", error);
       alert("Error removing book. Please try again.");
     }
   };
 
+  // Remove Chapter from Firebase
+  const removeChapter = async (id) => {
+    if (!confirm("Remove this chapter?")) return;
+    
+    try {
+      await deleteDoc(doc(db, 'chapters', id));
+    } catch (error) {
+      console.error("Error removing chapter: ", error);
+      alert("Error removing chapter. Please try again.");
+    }
+  };
+
   // Handle author selection
   const handleAuthorSelect = (authorId) => {
     setViewAuthorId(authorId);
-    setIsSidebarOpen(false); // Close sidebar on mobile
+    setViewBookId("");
+    setActiveTab("books");
+    setIsSidebarOpen(false);
+  };
+
+  // Handle book selection for chapters view
+  const handleBookSelect = (bookId) => {
+    setViewBookId(bookId);
+    setActiveTab("chapters");
+  };
+
+  // Handle back to books view
+  const handleBackToBooks = () => {
+    setViewBookId("");
+    setActiveTab("books");
   };
 
   const booksForAuthor = (id) => books.filter((b) => b.authorId === id);
+  const chaptersForBook = (id) => chapters.filter((c) => c.bookId === id);
   const selectedAuthor = authors.find((a) => a.id === viewAuthorId);
+  const selectedBook = books.find((b) => b.id === viewBookId);
   const authorBooks = booksForAuthor(viewAuthorId);
+  const bookChapters = chaptersForBook(viewBookId);
 
   if (loading) {
     return (
@@ -229,6 +330,14 @@ export default function App() {
                 <span>+</span>
                 <span className="hidden sm:inline">Add Book</span>
                 <span className="sm:hidden">Book</span>
+              </button>
+              <button
+                onClick={() => setShowAddChapterModal(true)}
+                className="flex items-center gap-1 md:gap-2 px-3 py-2 md:px-4 md:py-2 bg-amber-600 text-white rounded-lg md:rounded-xl hover:bg-amber-700 transition-colors shadow-sm text-sm md:text-base"
+              >
+                <span>+</span>
+                <span className="hidden sm:inline">Add Chapter</span>
+                <span className="sm:hidden">Chapter</span>
               </button>
             </div>
           </div>
@@ -334,7 +443,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* Main Content - Books */}
+          {/* Main Content - Books & Chapters */}
           <div className="flex-1 min-w-0">
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 md:p-6">
               {!viewAuthorId ? (
@@ -353,7 +462,7 @@ export default function App() {
                     View Authors
                   </button>
                 </div>
-              ) : (
+              ) : activeTab === "books" ? (
                 <div>
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
                     <div className="flex-1">
@@ -397,30 +506,127 @@ export default function App() {
                     </div>
                   ) : (
                     <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                      {authorBooks.map((book) => (
+                      {authorBooks.map((book) => {
+                        const bookChapterCount = chaptersForBook(book.id).length;
+                        return (
+                          <div
+                            key={book.id}
+                            className="border border-slate-200 rounded-xl p-3 md:p-4 hover:shadow-md transition-shadow bg-white group"
+                          >
+                            <div className="flex justify-between items-start mb-3">
+                              <div className="flex-1">
+                                <h3 
+                                  className="font-semibold text-slate-800 text-base md:text-lg cursor-pointer hover:text-indigo-600"
+                                  onClick={() => handleBookSelect(book.id)}
+                                >
+                                  {book.title}
+                                </h3>
+                                <div className="flex items-center gap-2 md:gap-3 mt-1 flex-wrap">
+                                  <span className="text-slate-500 text-xs md:text-sm">{book.year}</span>
+                                  <span className="text-slate-400 hidden md:inline">•</span>
+                                  <span className="text-slate-600 text-xs md:text-sm font-medium">{book.category}</span>
+                                  <span className="text-slate-400 hidden md:inline">•</span>
+                                  <span className="text-slate-500 text-xs md:text-sm">{bookChapterCount} chapters</span>
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => removeBook(book.id)}
+                                className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all p-1 rounded text-lg"
+                                title="Remove book"
+                              >
+                                ×
+                              </button>
+                            </div>
+                            {book.description && (
+                              <p className="text-slate-600 text-xs md:text-sm leading-relaxed mb-3">{book.description}</p>
+                            )}
+                            <button
+                              onClick={() => handleBookSelect(book.id)}
+                              className="w-full text-center py-2 text-indigo-600 hover:text-indigo-700 text-sm font-medium border border-indigo-200 rounded-lg hover:bg-indigo-50 transition-colors"
+                            >
+                              View Chapters
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                // Chapters View
+                <div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
+                    <div className="flex-1">
+                      <button
+                        onClick={handleBackToBooks}
+                        className="flex items-center gap-2 text-indigo-600 hover:text-indigo-700 mb-3 text-sm font-medium"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Back to Books
+                      </button>
+                      <h2 className="text-xl md:text-2xl font-bold text-slate-800">{selectedBook?.title}</h2>
+                      <p className="text-slate-600 mt-1 text-sm md:text-base">by {selectedAuthor?.name}</p>
+                      {selectedBook?.description && (
+                        <p className="text-slate-600 mt-2 text-sm md:text-base">{selectedBook.description}</p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => {
+                        setChapterBookId(viewBookId);
+                        setShowAddChapterModal(true);
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-xl hover:bg-amber-700 transition-colors shadow-sm w-full sm:w-auto justify-center"
+                    >
+                      <span>+</span>
+                      <span>Add Chapter</span>
+                    </button>
+                  </div>
+
+                  {bookChapters.length === 0 ? (
+                    <div className="text-center py-8 md:py-12 border-2 border-dashed border-slate-200 rounded-xl">
+                      <div className="text-4xl mb-3">📑</div>
+                      <h3 className="text-lg font-semibold text-slate-700 mb-2">No chapters yet</h3>
+                      <p className="text-slate-500 mb-4 text-sm md:text-base">Add the first chapter for {selectedBook?.title}</p>
+                      <button
+                        onClick={() => {
+                          setChapterBookId(viewBookId);
+                          setShowAddChapterModal(true);
+                        }}
+                        className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
+                      >
+                        Add Chapter
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {bookChapters.map((chapter) => (
                         <div
-                          key={book.id}
-                          className="border border-slate-200 rounded-xl p-3 md:p-4 hover:shadow-md transition-shadow bg-white group"
+                          key={chapter.id}
+                          className="border border-slate-200 rounded-xl p-4 md:p-6 hover:shadow-md transition-shadow bg-white group"
                         >
                           <div className="flex justify-between items-start mb-3">
                             <div className="flex-1">
-                              <h3 className="font-semibold text-slate-800 text-base md:text-lg">{book.title}</h3>
-                              <div className="flex items-center gap-2 md:gap-3 mt-1 flex-wrap">
-                                <span className="text-slate-500 text-xs md:text-sm">{book.year}</span>
-                                <span className="text-slate-400 hidden md:inline">•</span>
-                                <span className="text-slate-600 text-xs md:text-sm font-medium">{book.category}</span>
+                              <div className="flex items-center gap-3 mb-2">
+                                <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-sm font-medium">
+                                  Chapter {chapter.chapterNumber}
+                                </span>
                               </div>
+                              <h3 className="font-semibold text-slate-800 text-lg md:text-xl">{chapter.title}</h3>
                             </div>
                             <button
-                              onClick={() => removeBook(book.id)}
+                              onClick={() => removeChapter(chapter.id)}
                               className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all p-1 rounded text-lg"
-                              title="Remove book"
+                              title="Remove chapter"
                             >
                               ×
                             </button>
                           </div>
-                          {book.description && (
-                            <p className="text-slate-600 text-xs md:text-sm leading-relaxed">{book.description}</p>
+                          {chapter.content && (
+                            <div className="prose prose-sm max-w-none">
+                              <p className="text-slate-600 leading-relaxed whitespace-pre-line">{chapter.content}</p>
+                            </div>
                           )}
                         </div>
                       ))}
@@ -614,6 +820,109 @@ export default function App() {
                     className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors text-sm sm:text-base"
                   >
                     Add Book
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Chapter Modal */}
+      {showAddChapterModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto mx-2">
+            <div className="p-4 sm:p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg sm:text-xl font-semibold text-slate-800">Add New Chapter</h2>
+                <button
+                  onClick={() => setShowAddChapterModal(false)}
+                  className="text-slate-400 hover:text-slate-600 text-2xl p-1"
+                >
+                  ×
+                </button>
+              </div>
+              <form onSubmit={handleAddChapter} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Select Book *
+                  </label>
+                  <select
+                    value={chapterBookId}
+                    onChange={(e) => setChapterBookId(e.target.value)}
+                    className="w-full border border-slate-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm sm:text-base"
+                  >
+                    <option value="">-- choose book --</option>
+                    {books.map((book) => (
+                      <option key={book.id} value={book.id}>
+                        {book.title} by {authors.find(a => a.id === book.authorId)?.name}
+                      </option>
+                    ))}
+                  </select>
+                  {chapterErrors.book && (
+                    <div className="text-red-500 text-sm mt-1">{chapterErrors.book}</div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Chapter Number *
+                    </label>
+                    <input
+                      type="number"
+                      value={chapterNumber}
+                      onChange={(e) => setChapterNumber(e.target.value)}
+                      className="w-full border border-slate-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm sm:text-base"
+                      placeholder="1"
+                      min="1"
+                    />
+                    {chapterErrors.number && (
+                      <div className="text-red-500 text-sm mt-1">{chapterErrors.number}</div>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Chapter Title *
+                    </label>
+                    <input
+                      value={chapterTitle}
+                      onChange={(e) => setChapterTitle(e.target.value)}
+                      className="w-full border border-slate-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm sm:text-base"
+                      placeholder="Chapter title"
+                    />
+                    {chapterErrors.title && (
+                      <div className="text-red-500 text-sm mt-1">{chapterErrors.title}</div>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Chapter Content
+                  </label>
+                  <textarea
+                    value={chapterContent}
+                    onChange={(e) => setChapterContent(e.target.value)}
+                    className="w-full border border-slate-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm sm:text-base"
+                    rows={5}
+                    placeholder="Enter chapter content..."
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-2 flex-col sm:flex-row">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddChapterModal(false)}
+                    className="flex-1 px-4 py-3 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors text-sm sm:text-base"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 px-4 py-3 bg-amber-600 text-white rounded-xl hover:bg-amber-700 transition-colors text-sm sm:text-base"
+                  >
+                    Add Chapter
                   </button>
                 </div>
               </form>
