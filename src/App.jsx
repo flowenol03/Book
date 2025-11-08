@@ -237,23 +237,23 @@ export default function App() {
 
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 md:py-6">
         <div className="flex gap-4 md:gap-6">
+          {/* Mobile Sidebar Overlay */}
+          {isSidebarOpen && (
+            <div 
+              className="fixed inset-0 bg-black bg-opacity-50 lg:hidden z-40"
+              onClick={() => setIsSidebarOpen(false)}
+            />
+          )}
+
           {/* Sidebar - Authors List */}
           <div className={`
             ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
-            lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-40
+            lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50
             w-80 lg:w-80 xl:w-96 flex-shrink-0 bg-white lg:bg-transparent
             transition-transform duration-300 ease-in-out lg:transition-none
             lg:block
           `}>
-            {/* Mobile overlay */}
-            {isSidebarOpen && (
-              <div 
-                className="fixed inset-0 bg-black bg-opacity-50 lg:hidden z-30"
-                onClick={() => setIsSidebarOpen(false)}
-              />
-            )}
-            
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 md:p-6 h-full lg:h-auto lg:max-h-[calc(100vh-200px)] overflow-y-auto">
+            <div className="bg-white rounded-2xl lg:rounded-2xl shadow-sm border border-slate-200 p-4 md:p-6 h-full lg:h-auto lg:max-h-[calc(100vh-200px)] overflow-y-auto">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-semibold text-slate-800">Authors</h2>
                 <button
