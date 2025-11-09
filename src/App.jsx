@@ -457,7 +457,10 @@ export default function App() {
                       )}
                     </div>
                     <button
-                      onClick={() => setShowAddBookModal(true)}
+                      onClick={() => {
+                        setBookAuthorId(viewAuthorId); // Set the current author as default
+                        setShowAddBookModal(true);
+                      }}
                       className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors shadow-sm w-full sm:w-auto justify-center"
                     >
                       <span>+</span>
