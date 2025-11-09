@@ -8,7 +8,7 @@ import {
   remove
 } from 'firebase/database';
 import { db } from './firebase';
-import TestComponent from './TestComponent';
+//import TestComponent from './TestComponent';
 
 const isNonEmpty = (s) => typeof s === "string" && s.trim().length > 0;
 const isFourDigitYear = (y) => /^\d{4}$/.test(String(y));
