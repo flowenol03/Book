@@ -1,12 +1,10 @@
-// firebase.js
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
-import { getAnalytics } from "firebase/analytics";
+import { getDatabase } from 'firebase/database';
 
-// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyD9yHd-ydWerznHud04UFmGaPSJlDGhI24",
   authDomain: "fir-aa842.firebaseapp.com",
+  databaseURL: "https://fir-aa842-default-rtdb.firebaseio.com",
   projectId: "fir-aa842",
   storageBucket: "fir-aa842.firebasestorage.app",
   messagingSenderId: "112544598499",
@@ -14,13 +12,6 @@ const firebaseConfig = {
   measurementId: "G-S4DC348RBT"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-
-// Initialize Cloud Firestore and get a reference to the service
-export const db = getFirestore(app);
-
-// Initialize Analytics (optional - only if you need it)
-export const analytics = getAnalytics(app);
-
+export const db = getDatabase(app);
 export default app;
