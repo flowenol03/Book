@@ -8,7 +8,6 @@ import {
   remove
 } from 'firebase/database';
 import { db } from './firebase';
-//import TestComponent from './TestComponent';
 
 const isNonEmpty = (s) => typeof s === "string" && s.trim().length > 0;
 const isFourDigitYear = (y) => /^\d{4}$/.test(String(y));
@@ -306,7 +305,7 @@ export default function App() {
               <h1 className="text-xl md:text-2xl font-bold text-slate-800">BookLibrary</h1>
             </div>
             <div className="flex gap-2 md:gap-3">
-              {/* Your existing buttons */}
+              {/* Only Add Author button remains */}
               <button
                 onClick={() => setShowAddAuthorModal(true)}
                 className="flex items-center gap-1 md:gap-2 px-3 py-2 md:px-4 md:py-2 bg-indigo-600 text-white rounded-lg md:rounded-xl hover:bg-indigo-700 transition-colors shadow-sm text-sm md:text-base"
@@ -315,62 +314,6 @@ export default function App() {
                 <span className="hidden sm:inline">Add Author</span>
                 <span className="sm:hidden">Author</span>
               </button>
-              <button
-                onClick={() => setShowAddBookModal(true)}
-                className="flex items-center gap-1 md:gap-2 px-3 py-2 md:px-4 md:py-2 bg-emerald-600 text-white rounded-lg md:rounded-xl hover:bg-emerald-700 transition-colors shadow-sm text-sm md:text-base"
-              >
-                <span>+</span>
-                <span className="hidden sm:inline">Add Book</span>
-                <span className="sm:hidden">Book</span>
-              </button>
-              <button
-                onClick={() => setShowAddChapterModal(true)}
-                className="flex items-center gap-1 md:gap-2 px-3 py-2 md:px-4 md:py-2 bg-amber-600 text-white rounded-lg md:rounded-xl hover:bg-amber-700 transition-colors shadow-sm text-sm md:text-base"
-              >
-                <span>+</span>
-                <span className="hidden sm:inline">Add Chapter</span>
-                <span className="sm:hidden">Chapter</span>
-              </button>
-
-              {/* ADD THESE TEST BUTTONS */}
-              {/* 
-<button
-  onClick={async () => {
-    if (confirm('This will add 10 authors, 60 books, and 600 chapters. Continue?')) {
-      try {
-        const { populateTestData } = await import('./testData');
-        await populateTestData();
-        alert('Test data added successfully!');
-      } catch (error) {
-        alert('Error: ' + error.message);
-      }
-    }
-  }}
-  className="flex items-center gap-1 md:gap-2 px-3 py-2 md:px-4 md:py-2 bg-purple-600 text-white rounded-lg md:rounded-xl hover:bg-purple-700 transition-colors shadow-sm text-sm md:text-base"
->
-  <span>⚡</span>
-  <span className="hidden sm:inline">Test Data</span>
-</button>
-
-<button
-  onClick={async () => {
-    if (confirm('DELETE ALL DATA? This cannot be undone!')) {
-      try {
-        const { clearAllData } = await import('./testData');
-        await clearAllData();
-        alert('All data cleared!');
-      } catch (error) {
-        alert('Error: ' + error.message);
-      }
-    }
-  }}
-  className="flex items-center gap-1 md:gap-2 px-3 py-2 md:px-4 md:py-2 bg-red-600 text-white rounded-lg md:rounded-xl hover:bg-red-700 transition-colors shadow-sm text-sm md:text-base"
->
-  <span>🗑️</span>
-  <span className="hidden sm:inline">Clear All</span>
-</button>
-*/}
-
             </div>
           </div>
         </div>
