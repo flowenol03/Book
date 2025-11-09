@@ -333,40 +333,44 @@ export default function App() {
               </button>
 
               {/* ADD THESE TEST BUTTONS */}
-              <button
-                onClick={async () => {
-                  if (confirm('This will add 10 authors, 60 books, and 600 chapters. Continue?')) {
-                    try {
-                      const { populateTestData } = await import('./testData');
-                      await populateTestData();
-                      alert('Test data added successfully!');
-                    } catch (error) {
-                      alert('Error: ' + error.message);
-                    }
-                  }
-                }}
-                className="flex items-center gap-1 md:gap-2 px-3 py-2 md:px-4 md:py-2 bg-purple-600 text-white rounded-lg md:rounded-xl hover:bg-purple-700 transition-colors shadow-sm text-sm md:text-base"
-              >
-                <span>⚡</span>
-                <span className="hidden sm:inline">Test Data</span>
-              </button>
-              <button
-                onClick={async () => {
-                  if (confirm('DELETE ALL DATA? This cannot be undone!')) {
-                    try {
-                      const { clearAllData } = await import('./testData');
-                      await clearAllData();
-                      alert('All data cleared!');
-                    } catch (error) {
-                      alert('Error: ' + error.message);
-                    }
-                  }
-                }}
-                className="flex items-center gap-1 md:gap-2 px-3 py-2 md:px-4 md:py-2 bg-red-600 text-white rounded-lg md:rounded-xl hover:bg-red-700 transition-colors shadow-sm text-sm md:text-base"
-              >
-                <span>🗑️</span>
-                <span className="hidden sm:inline">Clear All</span>
-              </button>
+              {/* 
+<button
+  onClick={async () => {
+    if (confirm('This will add 10 authors, 60 books, and 600 chapters. Continue?')) {
+      try {
+        const { populateTestData } = await import('./testData');
+        await populateTestData();
+        alert('Test data added successfully!');
+      } catch (error) {
+        alert('Error: ' + error.message);
+      }
+    }
+  }}
+  className="flex items-center gap-1 md:gap-2 px-3 py-2 md:px-4 md:py-2 bg-purple-600 text-white rounded-lg md:rounded-xl hover:bg-purple-700 transition-colors shadow-sm text-sm md:text-base"
+>
+  <span>⚡</span>
+  <span className="hidden sm:inline">Test Data</span>
+</button>
+
+<button
+  onClick={async () => {
+    if (confirm('DELETE ALL DATA? This cannot be undone!')) {
+      try {
+        const { clearAllData } = await import('./testData');
+        await clearAllData();
+        alert('All data cleared!');
+      } catch (error) {
+        alert('Error: ' + error.message);
+      }
+    }
+  }}
+  className="flex items-center gap-1 md:gap-2 px-3 py-2 md:px-4 md:py-2 bg-red-600 text-white rounded-lg md:rounded-xl hover:bg-red-700 transition-colors shadow-sm text-sm md:text-base"
+>
+  <span>🗑️</span>
+  <span className="hidden sm:inline">Clear All</span>
+</button>
+*/}
+
             </div>
           </div>
         </div>
