@@ -31,6 +31,18 @@ export const useLibrary = () => {
 
   const loading = authorsLoading || booksLoading || chaptersLoading;
 
+  // Auto-select random author when authors load
+  useEffect(() => {
+    if (authors.length > 0 && !viewAuthorId && !loading) {
+      // Select a random author
+      const randomIndex = Math.floor(Math.random() * authors.length);
+      setViewAuthorId(authors[randomIndex].id);
+      setViewBookId("");
+      setActiveTab("books");
+    }
+  }, [authors, loading, viewAuthorId]);
+
+  // Rest of the code remains the same...
   const booksForAuthor = (authorId) => 
     books.filter((book) => book.authorId === authorId);
 
