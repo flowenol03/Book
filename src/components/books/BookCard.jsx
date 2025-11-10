@@ -1,6 +1,6 @@
 import React from 'react';
 
-const BookCard = ({ book, onSelect, onRemove, isAdmin = false }) => {
+const BookCard = ({ book, onSelect, onRemove, onEdit, isAdmin = false }) => {
   return (
     <div className="border border-slate-200 rounded-xl p-3 md:p-4 hover:shadow-md transition-shadow bg-white group">
       <div className="flex justify-between items-start mb-3">
@@ -17,18 +17,35 @@ const BookCard = ({ book, onSelect, onRemove, isAdmin = false }) => {
             <span className="text-slate-600 text-xs md:text-sm font-medium">{book.category}</span>
           </div>
         </div>
-        {isAdmin && onRemove && (
-          <button
-            onClick={() => {
-              if (window.confirm("Remove this book and all its chapters?")) {
-                onRemove(book.id);
-              }
-            }}
-            className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all p-1 rounded text-lg"
-            title="Remove book"
-          >
-            ×
-          </button>
+        {isAdmin && (
+          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+            {onEdit && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(book);
+                }}
+                className="text-slate-400 hover:text-blue-500 transition-colors p-1 rounded text-lg"
+                title="Edit book"
+              >
+                ✏️
+              </button>
+            )}
+            {onRemove && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (window.confirm("Remove this book and all its chapters?")) {
+                    onRemove(book.id);
+                  }
+                }}
+                className="text-slate-400 hover:text-red-500 transition-colors p-1 rounded text-lg"
+                title="Remove book"
+              >
+                ×
+              </button>
+            )}
+          </div>
         )}
       </div>
       {book.description && (

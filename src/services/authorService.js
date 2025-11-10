@@ -1,8 +1,7 @@
-import { ref, push, set, onValue, off, remove } from 'firebase/database';
+import { ref, push, set, onValue, off, remove, update } from 'firebase/database';
 import { db } from '../firebase';
 
 export const authorService = {
-  // Read
   subscribeToAuthors(callback) {
     const authorsRef = ref(db, 'authors');
     onValue(authorsRef, (snapshot) => {
@@ -20,7 +19,6 @@ export const authorService = {
     return () => off(authorsRef);
   },
 
-  // Create
   async addAuthor(authorData) {
     const newAuthor = {
       ...authorData,
@@ -34,7 +32,15 @@ export const authorService = {
     return newAuthorRef.key;
   },
 
-  // Delete
+  async updateAuthor(id, authorData) {
+    const authorRef = ref(db, `authors/${id}`);
+    const updates = {
+      ...authorData,
+      updatedAt: new Date().toISOString()
+    };
+    await update(authorRef, updates);
+  },
+
   async removeAuthor(id) {
     const authorRef = ref(db, `authors/${id}`);
     await remove(authorRef);

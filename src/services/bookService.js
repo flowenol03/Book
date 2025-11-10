@@ -1,8 +1,7 @@
-import { ref, push, set, onValue, off, remove } from 'firebase/database';
+import { ref, push, set, onValue, off, remove, update } from 'firebase/database';
 import { db } from '../firebase';
 
 export const bookService = {
-  // Read
   subscribeToBooks(callback) {
     const booksRef = ref(db, 'books');
     onValue(booksRef, (snapshot) => {
@@ -20,7 +19,6 @@ export const bookService = {
     return () => off(booksRef);
   },
 
-  // Create
   async addBook(bookData) {
     const newBook = {
       ...bookData,
@@ -34,7 +32,15 @@ export const bookService = {
     return newBookRef.key;
   },
 
-  // Delete
+  async updateBook(id, bookData) {
+    const bookRef = ref(db, `books/${id}`);
+    const updates = {
+      ...bookData,
+      updatedAt: new Date().toISOString()
+    };
+    await update(bookRef, updates);
+  },
+
   async removeBook(id) {
     const bookRef = ref(db, `books/${id}`);
     await remove(bookRef);

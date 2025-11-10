@@ -3,8 +3,11 @@ import { useLibrary } from "./hooks/useLibrary";
 import { useAuth } from "./contexts/AuthContext";
 import AuthorList from "./components/authors/AuthorList";
 import AuthorForm from "./components/authors/AuthorForm";
+import AuthorUpdateForm from "./components/authors/AuthorUpdateForm";
 import BookForm from "./components/books/BookForm";
+import BookUpdateForm from "./components/books/BookUpdateForm";
 import ChapterForm from "./components/chapters/ChapterForm";
+import ChapterUpdateForm from "./components/chapters/ChapterUpdateForm";
 import LoadingSpinner from "./components/common/LoadingSpinner";
 import Modal from "./components/common/Modal";
 import Sidebar from "./components/common/Sidebar";
@@ -29,10 +32,13 @@ export default function App() {
     bookChapters,
     booksForAuthor,
     addAuthor,
+    updateAuthor,
     removeAuthor,
     addBook,
+    updateBook,
     removeBook,
     addChapter,
+    updateChapter,
     removeChapter,
     handleAuthorSelect,
     handleBookSelect,
@@ -45,8 +51,9 @@ export default function App() {
   const [activeModal, setActiveModal] = useState(null);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [formErrors, setFormErrors] = useState({});
+  const [editingItem, setEditingItem] = useState(null); // Track what we're editing
 
-  // Form handlers with validation (same as before)
+  // Form handlers with validation
   const handleAddAuthor = async (authorData) => {
     const errors = {};
     if (!isNonEmpty(authorData.name)) errors.name = "Author name is required.";
@@ -67,6 +74,30 @@ export default function App() {
     } catch (error) {
       console.error("Error adding author: ", error);
       alert("Error adding author. Please try again.");
+      return false;
+    }
+  };
+
+  const handleUpdateAuthor = async (authorData) => {
+    const errors = {};
+    if (!isNonEmpty(authorData.name)) errors.name = "Author name is required.";
+    setFormErrors(errors);
+    if (Object.keys(errors).length) return false;
+
+    try {
+      await updateAuthor(editingItem.id, {
+        name: authorData.name.trim(),
+        bio: authorData.bio.trim(),
+        genres: authorData.genres.split(",").map((g) => g.trim()).filter(Boolean),
+      });
+
+      setActiveModal(null);
+      setEditingItem(null);
+      setFormErrors({});
+      return true;
+    } catch (error) {
+      console.error("Error updating author: ", error);
+      alert("Error updating author. Please try again.");
       return false;
     }
   };
@@ -98,6 +129,34 @@ export default function App() {
     }
   };
 
+  const handleUpdateBook = async (bookData) => {
+    const errors = {};
+    if (!isNonEmpty(bookData.authorId)) errors.author = "Select an author.";
+    if (!isNonEmpty(bookData.title)) errors.title = "Book title is required.";
+    if (!isFourDigitYear(bookData.year)) errors.year = "Year must be 4 digits (e.g. 1951).";
+    setFormErrors(errors);
+    if (Object.keys(errors).length) return false;
+
+    try {
+      await updateBook(editingItem.id, {
+        authorId: bookData.authorId,
+        title: bookData.title.trim(),
+        description: bookData.description.trim(),
+        year: bookData.year.trim(),
+        category: bookData.category.trim() || "Uncategorized",
+      });
+
+      setActiveModal(null);
+      setEditingItem(null);
+      setFormErrors({});
+      return true;
+    } catch (error) {
+      console.error("Error updating book: ", error);
+      alert("Error updating book. Please try again.");
+      return false;
+    }
+  };
+
   const handleAddChapter = async (chapterData) => {
     const errors = {};
     if (!isNonEmpty(chapterData.bookId)) errors.book = "Select a book.";
@@ -124,6 +183,49 @@ export default function App() {
     }
   };
 
+  const handleUpdateChapter = async (chapterData) => {
+    const errors = {};
+    if (!isNonEmpty(chapterData.bookId)) errors.book = "Select a book.";
+    if (!isNonEmpty(chapterData.title)) errors.title = "Chapter title is required.";
+    if (!chapterData.number || chapterData.number < 1) errors.number = "Chapter number must be at least 1.";
+    setFormErrors(errors);
+    if (Object.keys(errors).length) return false;
+
+    try {
+      await updateChapter(editingItem.id, {
+        bookId: chapterData.bookId,
+        title: chapterData.title.trim(),
+        content: chapterData.content.trim(),
+        chapterNumber: parseInt(chapterData.number),
+      });
+
+      setActiveModal(null);
+      setEditingItem(null);
+      setFormErrors({});
+      return true;
+    } catch (error) {
+      console.error("Error updating chapter: ", error);
+      alert("Error updating chapter. Please try again.");
+      return false;
+    }
+  };
+
+  // Edit handlers
+  const handleEditAuthor = (author) => {
+    setEditingItem(author);
+    setActiveModal('UPDATE_AUTHOR');
+  };
+
+  const handleEditBook = (book) => {
+    setEditingItem(book);
+    setActiveModal('UPDATE_BOOK');
+  };
+
+  const handleEditChapter = (chapter) => {
+    setEditingItem(chapter);
+    setActiveModal('UPDATE_CHAPTER');
+  };
+  // Remove handlers (same as before)
   const handleRemoveAuthor = (id) => {
     if (window.confirm("Remove author and all their books?")) {
       removeAuthor(id);
@@ -140,6 +242,11 @@ export default function App() {
     if (window.confirm("Remove this chapter?")) {
       removeChapter(id);
     }
+  };
+
+  const handleAuthorSelectWithClose = (authorId) => {
+    handleAuthorSelect(authorId);
+    setIsSidebarOpen(false);
   };
 
   if (loading || authLoading) {
@@ -164,7 +271,6 @@ export default function App() {
               <h1 className="text-xl md:text-2xl font-bold text-slate-800">BookLibrary</h1>
             </div>
             <div className="flex gap-2 md:gap-3">
-              {/* Admin Login Button - Show when not admin */}
               {!isAdmin && (
                 <button
                   onClick={() => setShowAdminLogin(true)}
@@ -176,7 +282,6 @@ export default function App() {
                   <span className="hidden sm:inline">Admin</span>
                 </button>
               )}
-              {/* Add Author Button - Only show for admin */}
               {isAdmin && (
                 <button
                   onClick={() => setActiveModal('ADD_AUTHOR')}
@@ -199,7 +304,6 @@ export default function App() {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 md:py-6">
         <div className="flex gap-4 md:gap-6">
           {/* Sidebar */}
-          
           <Sidebar
             isOpen={isSidebarOpen}
             onClose={() => setIsSidebarOpen(false)}
@@ -208,11 +312,12 @@ export default function App() {
               authors={authors}
               booksForAuthor={booksForAuthor}
               selectedAuthorId={viewAuthorId}
-              onAuthorSelect={(authorId) => handleAuthorSelect(authorId, () => setIsSidebarOpen(false))} // Pass close callback
+              onAuthorSelect={handleAuthorSelectWithClose}
               onRemoveAuthor={isAdmin ? handleRemoveAuthor : null}
+              onEditAuthor={isAdmin ? handleEditAuthor : null}  // Add this
               onAddAuthor={isAdmin ? () => setActiveModal('ADD_AUTHOR') : null}
               isAdmin={isAdmin}
-              onCloseSidebar={() => setIsSidebarOpen(false)} // Pass close callback
+              onCloseSidebar={() => setIsSidebarOpen(false)}
             />
           </Sidebar>
 
@@ -230,6 +335,8 @@ export default function App() {
             onBackToBooks={handleBackToBooks}
             onRemoveBook={isAdmin ? handleRemoveBook : null}
             onRemoveChapter={isAdmin ? handleRemoveChapter : null}
+            onEditBook={isAdmin ? handleEditBook : null}  // Add this
+            onEditChapter={isAdmin ? handleEditChapter : null}  // Add this
             isSidebarOpen={isSidebarOpen}
             onOpenSidebar={() => setIsSidebarOpen(true)}
             isAdmin={isAdmin}
@@ -240,6 +347,7 @@ export default function App() {
       {/* Modals - Only show for admin */}
       {isAdmin && (
         <>
+          {/* Add Modals */}
           <Modal
             isOpen={activeModal === 'ADD_AUTHOR'}
             onClose={() => {
@@ -293,6 +401,73 @@ export default function App() {
               onSubmit={handleAddChapter}
               onCancel={() => {
                 setActiveModal(null);
+                setFormErrors({});
+              }}
+              errors={formErrors}
+            />
+          </Modal>
+
+          {/* Update Modals */}
+          <Modal
+            isOpen={activeModal === 'UPDATE_AUTHOR'}
+            onClose={() => {
+              setActiveModal(null);
+              setEditingItem(null);
+              setFormErrors({});
+            }}
+            title="Update Author"
+          >
+            <AuthorUpdateForm
+              author={editingItem}
+              onSubmit={handleUpdateAuthor}
+              onCancel={() => {
+                setActiveModal(null);
+                setEditingItem(null);
+                setFormErrors({});
+              }}
+              errors={formErrors}
+            />
+          </Modal>
+
+          <Modal
+            isOpen={activeModal === 'UPDATE_BOOK'}
+            onClose={() => {
+              setActiveModal(null);
+              setEditingItem(null);
+              setFormErrors({});
+            }}
+            title="Update Book"
+          >
+            <BookUpdateForm
+              book={editingItem}
+              authors={authors}
+              onSubmit={handleUpdateBook}
+              onCancel={() => {
+                setActiveModal(null);
+                setEditingItem(null);
+                setFormErrors({});
+              }}
+              errors={formErrors}
+            />
+          </Modal>
+
+          <Modal
+            isOpen={activeModal === 'UPDATE_CHAPTER'}
+            onClose={() => {
+              setActiveModal(null);
+              setEditingItem(null);
+              setFormErrors({});
+            }}
+            title="Update Chapter"
+          >
+            <ChapterUpdateForm
+              chapter={editingItem}
+              books={books}
+              authors={authors}
+              onSubmit={handleUpdateChapter}
+              onCancel={() => {
+                setActiveModal(null);
+                setEditingItem(null);
                 setFormErrors({});
               }}
               errors={formErrors}

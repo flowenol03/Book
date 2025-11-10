@@ -19,6 +19,7 @@ export const useAuthors = () => {
     authors,
     loading,
     addAuthor: authorService.addAuthor,
+    updateAuthor: authorService.updateAuthor,
     removeAuthor: authorService.removeAuthor
   };
 };

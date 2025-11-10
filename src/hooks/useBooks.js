@@ -19,6 +19,7 @@ export const useBooks = () => {
     books,
     loading,
     addBook: bookService.addBook,
+    updateBook: bookService.updateBook,
     removeBook: bookService.removeBook
   };
 };

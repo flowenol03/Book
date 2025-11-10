@@ -15,9 +15,11 @@ const MainContent = ({
   onBackToBooks, 
   onRemoveBook, 
   onRemoveChapter,
+  onEditBook,
+  onEditChapter,
   isSidebarOpen,
   onOpenSidebar,
-  isAdmin = false  // Add isAdmin prop with default false
+  isAdmin = false
 }) => {
   // If no author is selected, show welcome message
   if (!viewAuthorId) {
@@ -59,6 +61,7 @@ const MainContent = ({
             onAddBook={onAddBook}
             onBookSelect={onBookSelect}
             onRemoveBook={onRemoveBook}
+            onEditBook={onEditBook}
             isAdmin={isAdmin}
           />
         ) : (
@@ -69,6 +72,7 @@ const MainContent = ({
             onAddChapter={onAddChapter}
             onBackToBooks={onBackToBooks}
             onRemoveChapter={onRemoveChapter}
+            onEditChapter={onEditChapter}
             isAdmin={isAdmin}
           />
         )}
@@ -77,7 +81,7 @@ const MainContent = ({
   );
 };
 
-const BooksView = ({ selectedAuthor, authorBooks, onAddBook, onBookSelect, onRemoveBook, isAdmin }) => (
+const BooksView = ({ selectedAuthor, authorBooks, onAddBook, onBookSelect, onRemoveBook, onEditBook, isAdmin }) => (
   <div className="flex flex-col h-full">
     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
       <div className="flex-1">
@@ -125,6 +129,7 @@ const BooksView = ({ selectedAuthor, authorBooks, onAddBook, onBookSelect, onRem
           books={authorBooks}
           onBookSelect={onBookSelect}
           onRemoveBook={onRemoveBook}
+          onEditBook={onEditBook}
           isAdmin={isAdmin}
         />
       </div>
@@ -132,7 +137,7 @@ const BooksView = ({ selectedAuthor, authorBooks, onAddBook, onBookSelect, onRem
   </div>
 );
 
-const ChaptersView = ({ selectedAuthor, selectedBook, bookChapters, onAddChapter, onBackToBooks, onRemoveChapter, isAdmin }) => (
+const ChaptersView = ({ selectedAuthor, selectedBook, bookChapters, onAddChapter, onBackToBooks, onRemoveChapter, onEditChapter, isAdmin }) => (
   <div className="flex flex-col h-full">
     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
       <div className="flex-1">
@@ -177,6 +182,7 @@ const ChaptersView = ({ selectedAuthor, selectedBook, bookChapters, onAddChapter
         <ChapterList
           chapters={bookChapters}
           onRemoveChapter={onRemoveChapter}
+          onEditChapter={onEditChapter}
           isAdmin={isAdmin}
         />
       </div>

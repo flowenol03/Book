@@ -19,6 +19,7 @@ export const useChapters = () => {
     chapters,
     loading,
     addChapter: chapterService.addChapter,
+    updateChapter: chapterService.updateChapter,
     removeChapter: chapterService.removeChapter
   };
 };

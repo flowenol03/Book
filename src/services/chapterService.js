@@ -1,8 +1,7 @@
-import { ref, push, set, onValue, off, remove } from 'firebase/database';
+import { ref, push, set, onValue, off, remove, update } from 'firebase/database';
 import { db } from '../firebase';
 
 export const chapterService = {
-  // Read
   subscribeToChapters(callback) {
     const chaptersRef = ref(db, 'chapters');
     onValue(chaptersRef, (snapshot) => {
@@ -20,7 +19,6 @@ export const chapterService = {
     return () => off(chaptersRef);
   },
 
-  // Create
   async addChapter(chapterData) {
     const newChapter = {
       ...chapterData,
@@ -34,7 +32,15 @@ export const chapterService = {
     return newChapterRef.key;
   },
 
-  // Delete
+  async updateChapter(id, chapterData) {
+    const chapterRef = ref(db, `chapters/${id}`);
+    const updates = {
+      ...chapterData,
+      updatedAt: new Date().toISOString()
+    };
+    await update(chapterRef, updates);
+  },
+
   async removeChapter(id) {
     const chapterRef = ref(db, `chapters/${id}`);
     await remove(chapterRef);

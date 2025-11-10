@@ -8,6 +8,7 @@ export const useLibrary = () => {
     authors,
     loading: authorsLoading,
     addAuthor,
+    updateAuthor,
     removeAuthor
   } = useAuthors();
 
@@ -15,6 +16,7 @@ export const useLibrary = () => {
     books,
     loading: booksLoading,
     addBook,
+    updateBook,
     removeBook
   } = useBooks();
 
@@ -22,6 +24,7 @@ export const useLibrary = () => {
     chapters,
     loading: chaptersLoading,
     addChapter,
+    updateChapter,
     removeChapter
   } = useChapters();
 
@@ -34,7 +37,6 @@ export const useLibrary = () => {
   // Auto-select random author when authors load
   useEffect(() => {
     if (authors.length > 0 && !viewAuthorId && !loading) {
-      // Select a random author
       const randomIndex = Math.floor(Math.random() * authors.length);
       setViewAuthorId(authors[randomIndex].id);
       setViewBookId("");
@@ -58,7 +60,6 @@ export const useLibrary = () => {
     setViewBookId("");
     setActiveTab("books");
     
-    // Close sidebar if callback provided (for mobile)
     if (onCloseSidebar && typeof onCloseSidebar === 'function') {
       onCloseSidebar();
     }
@@ -94,13 +95,18 @@ export const useLibrary = () => {
     booksForAuthor,
     chaptersForBook,
     
-    // Actions
+    // CRUD Actions
     addAuthor,
+    updateAuthor,
     removeAuthor,
     addBook,
+    updateBook,
     removeBook,
     addChapter,
+    updateChapter,
     removeChapter,
+    
+    // UI Actions
     handleAuthorSelect,
     handleBookSelect,
     handleBackToBooks,

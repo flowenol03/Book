@@ -1,8 +1,8 @@
 import React from 'react';
 
-const AuthorCard = ({ author, bookCount, isSelected, onSelect, onRemove, isAdmin = false, onCloseSidebar = null }) => {
+const AuthorCard = ({ author, bookCount, isSelected, onSelect, onRemove, onEdit, isAdmin = false, onCloseSidebar = null }) => {
   const handleClick = () => {
-    onSelect(author.id, onCloseSidebar); // Pass the close callback
+    onSelect(author.id, onCloseSidebar);
   };
 
   return (
@@ -39,19 +39,35 @@ const AuthorCard = ({ author, bookCount, isSelected, onSelect, onRemove, isAdmin
             <span>{bookCount} book{bookCount !== 1 ? 's' : ''}</span>
           </div>
         </div>
-        {isAdmin && onRemove && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (window.confirm("Remove author and all their books?")) {
-                onRemove(author.id);
-              }
-            }}
-            className="text-slate-400 hover:text-red-500 transition-colors p-1 rounded text-lg"
-            title="Remove author"
-          >
-            ×
-          </button>
+        {isAdmin && (
+          <div className="flex gap-1">
+            {onEdit && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(author);
+                }}
+                className="text-slate-400 hover:text-blue-500 transition-colors p-1 rounded text-lg"
+                title="Edit author"
+              >
+                ✏️
+              </button>
+            )}
+            {onRemove && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (window.confirm("Remove author and all their books?")) {
+                    onRemove(author.id);
+                  }
+                }}
+                className="text-slate-400 hover:text-red-500 transition-colors p-1 rounded text-lg"
+                title="Remove author"
+              >
+                ×
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>

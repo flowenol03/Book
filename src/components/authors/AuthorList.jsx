@@ -7,9 +7,10 @@ const AuthorList = ({
   selectedAuthorId, 
   onAuthorSelect, 
   onRemoveAuthor,
+  onEditAuthor,
   onAddAuthor,
   isAdmin = false,
-  onCloseSidebar = null // Add this prop
+  onCloseSidebar = null
 }) => {
   if (authors.length === 0) {
     return (
@@ -38,8 +39,9 @@ const AuthorList = ({
           isSelected={selectedAuthorId === author.id}
           onSelect={onAuthorSelect}
           onRemove={isAdmin ? onRemoveAuthor : null}
+          onEdit={isAdmin ? onEditAuthor : null}
           isAdmin={isAdmin}
-          onCloseSidebar={onCloseSidebar} // Pass to AuthorCard
+          onCloseSidebar={onCloseSidebar}
         />
       ))}
     </div>
