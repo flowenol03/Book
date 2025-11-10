@@ -1,0 +1,5 @@
+export const MODAL_TYPES = {
+  ADD_AUTHOR: 'ADD_AUTHOR',
+  ADD_BOOK: 'ADD_BOOK',
+  ADD_CHAPTER: 'ADD_CHAPTER'
+};

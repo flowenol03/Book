@@ -1,0 +1,38 @@
+/* Simple app styles */
+.app-container {
+  min-height: 100vh;
+  background-color: white;
+}
+
+/* Ensure content is always visible */
+.main-content {
+  min-height: calc(100vh - 80px);
+  background-color: white;
+}
+
+/* Simple modal styles */
+.modal-simple {
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e5e7eb;
+}
+
+/* Simple sidebar */
+.sidebar-simple {
+  background: white;
+  border-right: 1px solid #e5e7eb;
+}
+
+/* Ensure good contrast */
+.text-primary {
+  color: #1f2937;
+}
+
+.text-secondary {
+  color: #6b7280;
+}
+
+.bg-light {
+  background-color: #f9fafb;
+}
