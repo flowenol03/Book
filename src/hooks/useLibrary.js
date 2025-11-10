@@ -42,7 +42,6 @@ export const useLibrary = () => {
     }
   }, [authors, loading, viewAuthorId]);
 
-  // Rest of the code remains the same...
   const booksForAuthor = (authorId) => 
     books.filter((book) => book.authorId === authorId);
 
@@ -54,10 +53,15 @@ export const useLibrary = () => {
   const authorBooks = booksForAuthor(viewAuthorId);
   const bookChapters = chaptersForBook(viewBookId);
 
-  const handleAuthorSelect = (authorId) => {
+  const handleAuthorSelect = (authorId, onCloseSidebar = null) => {
     setViewAuthorId(authorId);
     setViewBookId("");
     setActiveTab("books");
+    
+    // Close sidebar if callback provided (for mobile)
+    if (onCloseSidebar && typeof onCloseSidebar === 'function') {
+      onCloseSidebar();
+    }
   };
 
   const handleBookSelect = (bookId) => {

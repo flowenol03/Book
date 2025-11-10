@@ -199,6 +199,7 @@ export default function App() {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 md:py-6">
         <div className="flex gap-4 md:gap-6">
           {/* Sidebar */}
+          
           <Sidebar
             isOpen={isSidebarOpen}
             onClose={() => setIsSidebarOpen(false)}
@@ -207,10 +208,11 @@ export default function App() {
               authors={authors}
               booksForAuthor={booksForAuthor}
               selectedAuthorId={viewAuthorId}
-              onAuthorSelect={handleAuthorSelect}
-              onRemoveAuthor={isAdmin ? handleRemoveAuthor : null} // Only pass if admin
+              onAuthorSelect={(authorId) => handleAuthorSelect(authorId, () => setIsSidebarOpen(false))} // Pass close callback
+              onRemoveAuthor={isAdmin ? handleRemoveAuthor : null}
               onAddAuthor={isAdmin ? () => setActiveModal('ADD_AUTHOR') : null}
               isAdmin={isAdmin}
+              onCloseSidebar={() => setIsSidebarOpen(false)} // Pass close callback
             />
           </Sidebar>
 

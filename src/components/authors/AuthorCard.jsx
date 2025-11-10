@@ -1,6 +1,10 @@
 import React from 'react';
 
-const AuthorCard = ({ author, bookCount, isSelected, onSelect, onRemove, isAdmin = false }) => {
+const AuthorCard = ({ author, bookCount, isSelected, onSelect, onRemove, isAdmin = false, onCloseSidebar = null }) => {
+  const handleClick = () => {
+    onSelect(author.id, onCloseSidebar); // Pass the close callback
+  };
+
   return (
     <div
       className={`p-3 md:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
@@ -8,7 +12,7 @@ const AuthorCard = ({ author, bookCount, isSelected, onSelect, onRemove, isAdmin
           ? "bg-indigo-50 border border-indigo-200 shadow-sm"
           : "bg-slate-50 hover:bg-slate-100 border border-transparent"
       }`}
-      onClick={() => onSelect(author.id)}
+      onClick={handleClick}
     >
       <div className="flex justify-between items-start">
         <div className="flex-1">
