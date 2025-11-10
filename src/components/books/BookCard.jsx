@@ -1,6 +1,6 @@
 import React from 'react';
 
-const BookCard = ({ book, onSelect, onRemove }) => {
+const BookCard = ({ book, onSelect, onRemove, isAdmin = false }) => {
   return (
     <div className="border border-slate-200 rounded-xl p-3 md:p-4 hover:shadow-md transition-shadow bg-white group">
       <div className="flex justify-between items-start mb-3">
@@ -17,17 +17,19 @@ const BookCard = ({ book, onSelect, onRemove }) => {
             <span className="text-slate-600 text-xs md:text-sm font-medium">{book.category}</span>
           </div>
         </div>
-        <button
-          onClick={() => {
-            if (window.confirm("Remove this book and all its chapters?")) {
-              onRemove(book.id);
-            }
-          }}
-          className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all p-1 rounded text-lg"
-          title="Remove book"
-        >
-          ×
-        </button>
+        {isAdmin && onRemove && (
+          <button
+            onClick={() => {
+              if (window.confirm("Remove this book and all its chapters?")) {
+                onRemove(book.id);
+              }
+            }}
+            className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all p-1 rounded text-lg"
+            title="Remove book"
+          >
+            ×
+          </button>
+        )}
       </div>
       {book.description && (
         <p className="text-slate-600 text-xs md:text-sm leading-relaxed mb-3 line-clamp-3">{book.description}</p>

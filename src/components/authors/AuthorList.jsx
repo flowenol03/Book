@@ -7,19 +7,22 @@ const AuthorList = ({
   selectedAuthorId, 
   onAuthorSelect, 
   onRemoveAuthor,
-  onAddAuthor 
+  onAddAuthor,
+  isAdmin = false
 }) => {
   if (authors.length === 0) {
     return (
       <div className="text-slate-500 text-center py-8">
         <div className="text-4xl mb-2">📚</div>
         <p>No authors yet</p>
-        <button
-          onClick={onAddAuthor}
-          className="mt-2 text-indigo-600 hover:text-indigo-700 text-sm font-medium"
-        >
-          Add your first author
-        </button>
+        {isAdmin && (
+          <button
+            onClick={onAddAuthor}
+            className="mt-2 text-indigo-600 hover:text-indigo-700 text-sm font-medium"
+          >
+            Add your first author
+          </button>
+        )}
       </div>
     );
   }
@@ -33,7 +36,8 @@ const AuthorList = ({
           bookCount={booksForAuthor(author.id).length}
           isSelected={selectedAuthorId === author.id}
           onSelect={onAuthorSelect}
-          onRemove={onRemoveAuthor}
+          onRemove={isAdmin ? onRemoveAuthor : null}
+          isAdmin={isAdmin}
         />
       ))}
     </div>

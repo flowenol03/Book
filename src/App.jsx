@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useLibrary } from "./hooks/useLibrary";
+import { useAuth } from "./contexts/AuthContext";
 import AuthorList from "./components/authors/AuthorList";
 import AuthorForm from "./components/authors/AuthorForm";
 import BookForm from "./components/books/BookForm";
@@ -8,8 +9,10 @@ import LoadingSpinner from "./components/common/LoadingSpinner";
 import Modal from "./components/common/Modal";
 import Sidebar from "./components/common/Sidebar";
 import MainContent from "./components/common/MainContent";
+import AdminLogin from "./components/admin/AdminLogin";
+import AdminControls from "./components/admin/AdminControls";
 import { isNonEmpty, isFourDigitYear } from "./utils/validators";
-import "../styles/App.css";  // Change this to go up one level
+import "../styles/App.css";
 
 export default function App() {
   const {
@@ -37,11 +40,13 @@ export default function App() {
     setViewAuthorId
   } = useLibrary();
 
+  const { isAdmin, isLoading: authLoading } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeModal, setActiveModal] = useState(null);
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [formErrors, setFormErrors] = useState({});
 
-  // Form handlers with validation
+  // Form handlers with validation (same as before)
   const handleAddAuthor = async (authorData) => {
     const errors = {};
     if (!isNonEmpty(authorData.name)) errors.name = "Author name is required.";
@@ -137,7 +142,7 @@ export default function App() {
     }
   };
 
-  if (loading) {
+  if (loading || authLoading) {
     return <LoadingSpinner />;
   }
 
@@ -158,17 +163,37 @@ export default function App() {
               </button>
               <h1 className="text-xl md:text-2xl font-bold text-slate-800">BookLibrary</h1>
             </div>
-            <button
-              onClick={() => setActiveModal('ADD_AUTHOR')}
-              className="flex items-center gap-1 md:gap-2 px-3 py-2 md:px-4 md:py-2 bg-indigo-600 text-white rounded-lg md:rounded-xl hover:bg-indigo-700 transition-colors shadow-sm text-sm md:text-base"
-            >
-              <span>+</span>
-              <span className="hidden sm:inline">Add Author</span>
-              <span className="sm:hidden">Author</span>
-            </button>
+            <div className="flex gap-2 md:gap-3">
+              {/* Admin Login Button - Show when not admin */}
+              {!isAdmin && (
+                <button
+                  onClick={() => setShowAdminLogin(true)}
+                  className="flex items-center gap-1 md:gap-2 px-3 py-2 md:px-4 md:py-2 bg-gray-600 text-white rounded-lg md:rounded-xl hover:bg-gray-700 transition-colors shadow-sm text-sm md:text-base"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  <span className="hidden sm:inline">Admin</span>
+                </button>
+              )}
+              {/* Add Author Button - Only show for admin */}
+              {isAdmin && (
+                <button
+                  onClick={() => setActiveModal('ADD_AUTHOR')}
+                  className="flex items-center gap-1 md:gap-2 px-3 py-2 md:px-4 md:py-2 bg-indigo-600 text-white rounded-lg md:rounded-xl hover:bg-indigo-700 transition-colors shadow-sm text-sm md:text-base"
+                >
+                  <span>+</span>
+                  <span className="hidden sm:inline">Add Author</span>
+                  <span className="sm:hidden">Author</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </header>
+
+      {/* Admin Controls */}
+      <AdminControls />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 md:py-6">
@@ -183,8 +208,9 @@ export default function App() {
               booksForAuthor={booksForAuthor}
               selectedAuthorId={viewAuthorId}
               onAuthorSelect={handleAuthorSelect}
-              onRemoveAuthor={handleRemoveAuthor}
-              onAddAuthor={() => setActiveModal('ADD_AUTHOR')}
+              onRemoveAuthor={isAdmin ? handleRemoveAuthor : null} // Only pass if admin
+              onAddAuthor={isAdmin ? () => setActiveModal('ADD_AUTHOR') : null}
+              isAdmin={isAdmin}
             />
           </Sidebar>
 
@@ -196,77 +222,87 @@ export default function App() {
             selectedBook={selectedBook}
             authorBooks={authorBooks}
             bookChapters={bookChapters}
-            onAddBook={() => setActiveModal('ADD_BOOK')}
-            onAddChapter={() => setActiveModal('ADD_CHAPTER')}
+            onAddBook={isAdmin ? () => setActiveModal('ADD_BOOK') : null}
+            onAddChapter={isAdmin ? () => setActiveModal('ADD_CHAPTER') : null}
             onBookSelect={handleBookSelect}
             onBackToBooks={handleBackToBooks}
-            onRemoveBook={handleRemoveBook}
-            onRemoveChapter={handleRemoveChapter}
+            onRemoveBook={isAdmin ? handleRemoveBook : null}
+            onRemoveChapter={isAdmin ? handleRemoveChapter : null}
             isSidebarOpen={isSidebarOpen}
             onOpenSidebar={() => setIsSidebarOpen(true)}
+            isAdmin={isAdmin}
           />
         </div>
       </div>
 
-      {/* Modals */}
-      <Modal
-        isOpen={activeModal === 'ADD_AUTHOR'}
-        onClose={() => {
-          setActiveModal(null);
-          setFormErrors({});
-        }}
-        title="Add New Author"
-      >
-        <AuthorForm
-          onSubmit={handleAddAuthor}
-          onCancel={() => {
-            setActiveModal(null);
-            setFormErrors({});
-          }}
-          errors={formErrors}
-        />
-      </Modal>
+      {/* Modals - Only show for admin */}
+      {isAdmin && (
+        <>
+          <Modal
+            isOpen={activeModal === 'ADD_AUTHOR'}
+            onClose={() => {
+              setActiveModal(null);
+              setFormErrors({});
+            }}
+            title="Add New Author"
+          >
+            <AuthorForm
+              onSubmit={handleAddAuthor}
+              onCancel={() => {
+                setActiveModal(null);
+                setFormErrors({});
+              }}
+              errors={formErrors}
+            />
+          </Modal>
 
-      <Modal
-        isOpen={activeModal === 'ADD_BOOK'}
-        onClose={() => {
-          setActiveModal(null);
-          setFormErrors({});
-        }}
-        title="Add New Book"
-      >
-        <BookForm
-          authors={authors}
-          defaultAuthorId={viewAuthorId}
-          onSubmit={handleAddBook}
-          onCancel={() => {
-            setActiveModal(null);
-            setFormErrors({});
-          }}
-          errors={formErrors}
-        />
-      </Modal>
+          <Modal
+            isOpen={activeModal === 'ADD_BOOK'}
+            onClose={() => {
+              setActiveModal(null);
+              setFormErrors({});
+            }}
+            title="Add New Book"
+          >
+            <BookForm
+              authors={authors}
+              defaultAuthorId={viewAuthorId}
+              onSubmit={handleAddBook}
+              onCancel={() => {
+                setActiveModal(null);
+                setFormErrors({});
+              }}
+              errors={formErrors}
+            />
+          </Modal>
 
-      <Modal
-        isOpen={activeModal === 'ADD_CHAPTER'}
-        onClose={() => {
-          setActiveModal(null);
-          setFormErrors({});
-        }}
-        title="Add New Chapter"
-      >
-        <ChapterForm
-          books={books}
-          authors={authors}
-          defaultBookId={viewBookId}
-          onSubmit={handleAddChapter}
-          onCancel={() => {
-            setActiveModal(null);
-            setFormErrors({});
-          }}
-          errors={formErrors}
-        />
-      </Modal>
+          <Modal
+            isOpen={activeModal === 'ADD_CHAPTER'}
+            onClose={() => {
+              setActiveModal(null);
+              setFormErrors({});
+            }}
+            title="Add New Chapter"
+          >
+            <ChapterForm
+              books={books}
+              authors={authors}
+              defaultBookId={viewBookId}
+              onSubmit={handleAddChapter}
+              onCancel={() => {
+                setActiveModal(null);
+                setFormErrors({});
+              }}
+              errors={formErrors}
+            />
+          </Modal>
+        </>
+      )}
+
+      {/* Admin Login Modal */}
+      {showAdminLogin && (
+        <AdminLogin onClose={() => setShowAdminLogin(false)} />
+      )}
     </div>
   );
 }

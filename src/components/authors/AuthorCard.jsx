@@ -1,6 +1,6 @@
 import React from 'react';
 
-const AuthorCard = ({ author, bookCount, isSelected, onSelect, onRemove }) => {
+const AuthorCard = ({ author, bookCount, isSelected, onSelect, onRemove, isAdmin = false }) => {
   return (
     <div
       className={`p-3 md:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
@@ -35,18 +35,20 @@ const AuthorCard = ({ author, bookCount, isSelected, onSelect, onRemove }) => {
             <span>{bookCount} book{bookCount !== 1 ? 's' : ''}</span>
           </div>
         </div>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            if (window.confirm("Remove author and all their books?")) {
-              onRemove(author.id);
-            }
-          }}
-          className="text-slate-400 hover:text-red-500 transition-colors p-1 rounded text-lg"
-          title="Remove author"
-        >
-          ×
-        </button>
+        {isAdmin && onRemove && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (window.confirm("Remove author and all their books?")) {
+                onRemove(author.id);
+              }
+            }}
+            className="text-slate-400 hover:text-red-500 transition-colors p-1 rounded text-lg"
+            title="Remove author"
+          >
+            ×
+          </button>
+        )}
       </div>
     </div>
   );

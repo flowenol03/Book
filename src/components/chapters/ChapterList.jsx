@@ -1,14 +1,15 @@
 import React from 'react';
 import ChapterCard from './ChapterCard';
 
-const ChapterList = ({ chapters, onRemoveChapter }) => {
+const ChapterList = ({ chapters, onRemoveChapter, isAdmin = false }) => {
   return (
     <div className="space-y-4">
       {chapters.map((chapter) => (
         <ChapterCard
           key={chapter.id}
           chapter={chapter}
-          onRemove={onRemoveChapter}
+          onRemove={isAdmin ? onRemoveChapter : null}
+          isAdmin={isAdmin}
         />
       ))}
     </div>

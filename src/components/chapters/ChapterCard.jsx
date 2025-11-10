@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ChapterCard = ({ chapter, onRemove }) => {
+const ChapterCard = ({ chapter, onRemove, isAdmin = false }) => {
   return (
     <div className="border border-slate-200 rounded-xl p-4 md:p-6 hover:shadow-md transition-shadow bg-white group">
       <div className="flex justify-between items-start mb-3">
@@ -12,17 +12,19 @@ const ChapterCard = ({ chapter, onRemove }) => {
           </div>
           <h3 className="font-semibold text-slate-800 text-lg md:text-xl">{chapter.title}</h3>
         </div>
-        <button
-          onClick={() => {
-            if (window.confirm("Remove this chapter?")) {
-              onRemove(chapter.id);
-            }
-          }}
-          className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all p-1 rounded text-lg"
-          title="Remove chapter"
-        >
-          ×
-        </button>
+        {isAdmin && onRemove && (
+          <button
+            onClick={() => {
+              if (window.confirm("Remove this chapter?")) {
+                onRemove(chapter.id);
+              }
+            }}
+            className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all p-1 rounded text-lg"
+            title="Remove chapter"
+          >
+            ×
+          </button>
+        )}
       </div>
       {chapter.content && (
         <div className="prose prose-sm max-w-none">
